@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>  
+    <title>John Michelbrink</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.799.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="./PhotoViewer.js"></script>
+    <script>viewAlbum('2010s');</script>
+    <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color:#1D1D2C;
+      color:#F7F4E9;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 1px;
+      font-family: 'Brush Script MT', cursive;
+      font-size: x-large;
+      font-weight:100;
+      background-color:#1D1D2C;
+      color:#F7F4E9;
+    }
+    .buttonDiv {
+      text-align: center;
+      padding:10px 5px 0px;
+    }
+    .row {
+      display: -ms-flexbox; /* IE 10 */
+      display: flex;
+      -ms-flex-wrap: wrap; /* IE 10 */
+      flex-wrap: wrap;
+      padding: 0 4px;
+    }
+
+    /* Create two equal columns that sits next to each other */
+    .column {
+      -ms-flex: 50%; /* IE 10 */
+      flex: 50%;
+      padding: 0 4px;
+    }
+
+    .column img {
+      margin-top: 8px;
+      vertical-align: middle;
+    }
+    a:link, a:visited {
+  color: white;
+  padding: 15px 25px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+    /* Style the buttons */
+    .btn {
+      border: none;
+      outline: none;
+      padding: 10px 16px;
+      background-color: #f1f1f1;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    
+    .btn:hover {
+      background-color: #ddd;
+    }
+    
+    .btn.active {
+      background-color: #666;
+      color: white;
+    }
+    /* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 100px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    }
+
+    /* Modal Content (Image) */
+    .modal-content {
+      margin: auto;
+      display: block;
+      width: 80%;
+      max-width: 1000px;
+    }
+    /* Caption of Modal Image (Image Text) - Same Width as the Image */
+    #caption {
+      margin: auto;
+      display: block;
+      width: 80%;
+      max-width: 700px;
+      text-align: center;
+      color: #ccc;
+      padding: 10px 0;
+      height: 150px;
+    }
+
+    /* Add Animation - Zoom in the Modal */
+    .modal-content, #caption {
+      animation-name: zoom;
+      animation-duration: 0.6s;
+    }
+
+    @keyframes zoom {
+      from {transform:scale(0)}
+      to {transform:scale(1)}
+    }
+
+    /* The Close Button */
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* 100% Image Width on Smaller Screens */
+    @media only screen and (max-width: 700px){
+      .modal-content {
+        width: 100%;
+      }
+    }
+    </style>
+    </head>      
+    <body>
+    <!-- Header -->
+    <div class="header" id="myHeader">
+      <h1>F. John Michelbrink</h1>
+      <h2>1944 - 2020</h2>
+      <h4 style="font-family: 'Times New Roman', Times, serif">Beloved husband, father, and grandfather. You will be forever missed.</h4>
+    </div>    
+    <div class="buttonDiv" id="myButtonDiv">
+      <button class="btn" style="width: 50px; padding: 5px; margin: 5px;" id="btnOne" onclick="one()">I</button>
+      <button class="btn" style="width: 50px; padding: 5px; margin: 5px;"  onclick="two()">II</button>
+      <button class="btn active" style="width: 50px; padding: 5px; margin: 5px;" id="btnFour" onclick="four()">IIII</button>
+    </div> 
+    <div id="viewer" />
+
+
+    <script>
+      //Set image source as we scroll
+      $(window).scroll(function() {
+          $.each($('img'), function() {
+              if ( $(this).attr('data-src') && $(this).offset().top < ($(window).scrollTop() + $(window).height() + 100) ) {
+                  var source = $(this).data('src');
+                  $(this).attr('src', source);
+                  $(this).removeAttr('data-src');
+              }
+          })
+      })
+
+      function showImage(imgSource){
+        var modal = document.getElementById("myModal");
+
+        // Get the image and insert it inside the modal - use its "alt" text as a caption
+        var modalImg = document.getElementById("img01");
+        var captionText = document.getElementById("caption");        
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+        modal.style.display = "block";
+        modalImg.src = imgSource;
+
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+          modal.style.display = "none";
+        }
+      }
+      // Get the elements with class="column"
+      var elements = document.getElementsByClassName("picture");
+      
+      // Declare a loop variable
+      var i;
+      
+      // Full-width images
+      function one() {
+          for (i = 0; i < elements.length; i++) {
+          elements[i].style.width = "100%";
+        }
+      }
+      
+      // Two images side by side
+      function two() {
+        for (i = 0; i < elements.length; i++) {
+          elements[i].style.width = "50%";
+        }
+      }
+      
+      // Four images side by side
+      function four() {
+        for (i = 0; i < elements.length; i++) {
+          elements[i].style.width = "25%";
+        }
+      }
+      
+      // Add active class to the current button (highlight it)
+      var header = document.getElementById("myButtonDiv");
+      var btns = header.getElementsByClassName("btn");
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].addEventListener("click", function() {
+          var current = document.getElementsByClassName("active");
+          current[0].className = current[0].className.replace(" active", "");
+          this.className += " active";
+        });
+      }
+
+      </script>
+</html>
